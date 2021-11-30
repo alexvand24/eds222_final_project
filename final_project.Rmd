@@ -1,0 +1,97 @@
+---
+title: "Final Project"
+author: "Alex Vand"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Install packages
+
+```{r, warning=FALSE, message=FALSE}
+library(tidyverse)
+#library(patchwork)
+```
+
+
+## Read in the raw data (.csv from NOAA)
+- https://www.cpc.ncep.noaa.gov/data/indices/
+
+- https://www.cpc.ncep.noaa.gov/data/indices/sstoi.indices
+
+```{r, warning=FALSE, message=FALSE}
+data_raw <- read_csv(here::here("enso_data_raw.csv"))
+```
+
+
+## Lag analysis
+
+$t-125$
+$t-175$
+$t-390$
+
+```{r}
+acf4 <- acf(x = data_raw$ANOM...4, lag.max = 478)
+```
+
+```{r}
+acf6 <- acf(x = data_raw$ANOM...6, lag.max = 478)
+```
+
+```{r}
+acf8 <- acf(x = data_raw$ANOM...8, lag.max = 478)
+```
+
+```{r}
+acf10 <- acf(x = data_raw$ANOM...10, lag.max = 478)
+```
+
+
+
+
+## Autocorrelation
+
+ADL?
+
+```{r}
+
+```
+
+## Hypothesis testing?
+
+```{r}
+data_mean <- data_raw %>% group_by(MON) %>%
+         summarize(avg_anom4 = mean(ANOM...4),
+                   avg_anom6 = mean(ANOM...6),
+                   avg_anom8 = mean(ANOM...8),
+                   avg_anom10 = mean(ANOM...10))
+
+data_sd <- data_raw %>% group_by(MON) %>%
+         summarize(sd_anom4 = sd(ANOM...4),
+                   sd_anom6 = sd(ANOM...6),
+                   sd_anom8 = sd(ANOM...8),
+                   sd_anom10 = sd(ANOM...10))
+```
+
+## Simple linear regression
+
+```{r}
+model <- summary(lm(YR ~ ANOM...4, data = data_raw))
+model
+```
+
+```{r}
+model <- summary(lm(MON ~ avg_anom4, data = data_mean))
+model
+```
+
+
+
+
+
+
