@@ -11,7 +11,7 @@
 
 <meta name="author" content="Alex Vand" />
 
-<meta name="date" content="2021-11-29" />
+<meta name="date" content="2021-11-30" />
 
 <title>Final Project</title>
 
@@ -178,8 +178,9 @@ pre code {
 
 
 <h1 class="title toc-ignore">Final Project</h1>
+<h3 class="subtitle">EDS 222</h3>
 <h4 class="author">Alex Vand</h4>
-<h4 class="date">2021-11-29</h4>
+<h4 class="date">2021-11-30</h4>
 
 </div>
 
@@ -187,7 +188,7 @@ pre code {
 <div id="install-packages" class="section level2">
 <h2>Install packages</h2>
 <pre class="r"><code>library(tidyverse)
-#library(patchwork)</code></pre>
+library(feasts)</code></pre>
 </div>
 <div id="read-in-the-raw-data-.csv-from-noaa" class="section level2">
 <h2>Read in the raw data (.csv from NOAA)</h2>
@@ -269,6 +270,31 @@ model</code></pre>
 ## Residual standard error: 3.142 on 10 degrees of freedom
 ## Multiple R-squared:  0.3097, Adjusted R-squared:  0.2407 
 ## F-statistic: 4.486 on 1 and 10 DF,  p-value: 0.06022</code></pre>
+</div>
+<div id="classical-decomposition" class="section level2">
+<h2>Classical decomposition</h2>
+<pre class="r"><code>as_tsibble(data_raw) %&gt;%
+  model(
+    classical_decomposition(formula = value??????, type = &quot;additive&quot;)
+  ) %&gt;%
+  components() %&gt;%
+  autoplot() +
+  labs(title = &quot;Classical additive decomposition of ENSO SST anomalies&quot;)</code></pre>
+</div>
+<div id="question" class="section level2">
+<h2>Question</h2>
+</div>
+<div id="motivation" class="section level2">
+<h2>Motivation</h2>
+</div>
+<div id="data" class="section level2">
+<h2>Data</h2>
+</div>
+<div id="analysis-and-results" class="section level2">
+<h2>Analysis and Results</h2>
+</div>
+<div id="future-research" class="section level2">
+<h2>Future Research</h2>
 </div>
 
 

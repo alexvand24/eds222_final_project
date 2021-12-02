@@ -1,5 +1,6 @@
 ---
 title: "Final Project"
+subtitle: "EDS 222"
 author: "Alex Vand"
 date: "`r Sys.Date()`"
 output:
@@ -15,7 +16,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r, warning=FALSE, message=FALSE}
 library(tidyverse)
-#library(patchwork)
+library(tsibble)
+library(zoo)
+library(feasts)
 ```
 
 
@@ -32,7 +35,9 @@ data_raw <- read_csv(here::here("enso_data_raw.csv"))
 ## Lag analysis
 
 $t-125$
+
 $t-175$
+
 $t-390$
 
 ```{r}
@@ -62,6 +67,7 @@ ADL?
 
 ```
 
+
 ## Hypothesis testing?
 
 ```{r}
@@ -78,6 +84,7 @@ data_sd <- data_raw %>% group_by(MON) %>%
                    sd_anom10 = sd(ANOM...10))
 ```
 
+
 ## Simple linear regression
 
 ```{r}
@@ -91,7 +98,45 @@ model
 ```
 
 
+## Classical decomposition
 
+```{r}
+data <- data_raw %>% 
+  mutate(month = case_when(
+    MON <= 9 ~ paste0(0, MON),
+    MON > 9 ~ paste0(MON))) %>%
+  unite(col = date, YR, month, sep = "-") %>% 
+  mutate(date = yearmonth(as.yearmon(date, format = '%Y-%m'))) %>%
+  na.omit() %>%
+  mutate(ANOM10 = ANOM...10) %>% 
+  select(date, ANOM10) %>% 
+  as_tsibble(index = date)
+```
+
+
+
+```{r}
+data %>%
+  model(classical_decomposition(ANOM10, type = "additive")) %>%
+  components() %>%
+  autoplot() +
+  labs(title = "Classical additive decomposition of ENSO SST anomalies")
+```
+
+https://tsibble.tidyverts.org/reference/as-tsibble.html
+
+## Question
+## Motivation
+## Data
+## Analysis and Results
+## Future Research
+
+```{r}
+as_tsibble(USAccDeaths) %>%
+  model(classical_decomposition(value)) %>%
+  components() %>% 
+  autoplot()
+```
 
 
 
