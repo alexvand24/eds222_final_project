@@ -9,30 +9,45 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
 
-## Install packages
 
-```{r, warning=FALSE, message=FALSE}
+```{r}
+# install packages
 library(tidyverse)
 library(tsibble)
 library(zoo)
 library(feasts)
+library(janitor)
+library(dplyr)
 ```
 
+## Question
 
-## Read in the raw data (.csv from NOAA)
+## Background & Motivation
+
+## Data
+
+
 - https://www.cpc.ncep.noaa.gov/data/indices/
+
+NOAA's National Weather Service Climate Prediction Center monthly atmospheric and sea surface temperature indices from January 1982 to October 2021. Measurements of SST anomalies across four regions of the pacific are used to examine El Niño Southern Oscillation for 40? year old data.
 
 - https://www.cpc.ncep.noaa.gov/data/indices/sstoi.indices
 
-```{r, warning=FALSE, message=FALSE}
-data_raw <- read_csv(here::here("enso_data_raw.csv"))
+```{r}
+# read in the raw data (.csv from NOAA)
+data_raw_enso <- read_csv(here::here("enso_data_raw_1982.csv"))
+
+data_enso <- janitor::clean_names(data_raw_enso)
 ```
+## Analysis and Results
 
+### Lag Analysis
 
-## Lag analysis
+Statistical lag analysis is implemented through the autocorrelation function `acf`, where the argument `lax.max = ` is indicated/specified in each of the following scenarios:
+- 478
 
 $t-125$
 
@@ -41,67 +56,51 @@ $t-175$
 $t-390$
 
 ```{r}
-acf4 <- acf(x = data_raw$ANOM...4, lag.max = 478)
-```
-
-```{r}
-acf6 <- acf(x = data_raw$ANOM...6, lag.max = 478)
-```
-
-```{r}
-acf8 <- acf(x = data_raw$ANOM...8, lag.max = 478)
-```
-
-```{r}
-acf10 <- acf(x = data_raw$ANOM...10, lag.max = 478)
+acf4 <- acf(x = data_enso$anom_4, lag.max = 478,
+            main = "Autocorrelation function")
 ```
 
 
 
-
-## Autocorrelation
-
-ADL?
-
 ```{r}
-
+acf6 <- acf(x = data_enso$anom_6, lag.max = 478)
 ```
 
 
-## Hypothesis testing?
-
 ```{r}
-data_mean <- data_raw %>% group_by(MON) %>%
-         summarize(avg_anom4 = mean(ANOM...4),
-                   avg_anom6 = mean(ANOM...6),
-                   avg_anom8 = mean(ANOM...8),
-                   avg_anom10 = mean(ANOM...10))
-
-data_sd <- data_raw %>% group_by(MON) %>%
-         summarize(sd_anom4 = sd(ANOM...4),
-                   sd_anom6 = sd(ANOM...6),
-                   sd_anom8 = sd(ANOM...8),
-                   sd_anom10 = sd(ANOM...10))
+acf6 <- acf(x = data_enso$anom_6, lag.max = 288)
 ```
 
 
-## Simple linear regression
-
 ```{r}
-model <- summary(lm(YR ~ ANOM...4, data = data_raw))
-model
-```
-
-```{r}
-model <- summary(lm(MON ~ avg_anom4, data = data_mean))
-model
+acf8 <- acf(x = data_enso$anom_8, lag.max = 478)
 ```
 
 
-## Classical decomposition
 
 ```{r}
-data <- data_raw %>% 
+acf10 <- acf(x = data_enso$anom_10, lag.max = 478)
+```
+
+
+
+```{r}
+acf10 <- acf(x = data_enso$anom_10, lag.max = 200)
+```
+
+
+
+```{r}
+max(acf10$lag[acf10=0.2])
+
+sort(acf10$lag[acf10=-0.3])
+```
+
+
+### Classical Decomposition
+
+```{r}
+data_enso <- data_raw_enso %>% 
   mutate(month = case_when(
     MON <= 9 ~ paste0(0, MON),
     MON > 9 ~ paste0(MON))) %>%
@@ -113,11 +112,37 @@ data <- data_raw %>%
   as_tsibble(index = date)
 ```
 
+```{r}
+data_enso %>%
+  model(classical_decomposition(ANOM10, type = "additive")) %>%
+  components() %>%
+  autoplot() +
+  labs(title = "Classical additive decomposition of ENSO SST anomalies")
+```
 
 
 ```{r}
-data %>%
-  model(classical_decomposition(ANOM10, type = "additive")) %>%
+# repeated code chunk - DELETE LATER
+data_raw_enso <- read_csv(here::here("enso_data_raw_1982.csv"))
+
+data_enso <- janitor::clean_names(data_raw_enso)
+```
+
+```{r}
+data_enso <- data_enso %>% 
+  mutate(month = case_when(
+    mon <= 9 ~ paste0(0, mon),
+    mon > 9 ~ paste0(mon))) %>%
+  unite(col = date, yr, mon, sep = "-") %>% 
+  mutate(date = yearmonth(as.yearmon(date, format = '%Y-%m'))) %>%
+  na.omit() %>%
+  select(date, anom_6) %>% 
+  as_tsibble(index = date)
+```
+
+```{r}
+data_enso %>%
+  model(classical_decomposition(anom_6, type = "additive")) %>%
   components() %>%
   autoplot() +
   labs(title = "Classical additive decomposition of ENSO SST anomalies")
@@ -125,18 +150,9 @@ data %>%
 
 https://tsibble.tidyverts.org/reference/as-tsibble.html
 
-## Question
-## Motivation
-## Data
-## Analysis and Results
-## Future Research
 
-```{r}
-as_tsibble(USAccDeaths) %>%
-  model(classical_decomposition(value)) %>%
-  components() %>% 
-  autoplot()
-```
+## Future Research
+Future research aims to hopes to 
 
 
 

@@ -1,0 +1,40 @@
+---
+title: "Notes & Exploration"
+author: "Alex Vand"
+date: "12/9/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Hypothesis testing?
+
+```{r}
+data_mean <- data_raw %>% group_by(MON) %>%
+         summarize(avg_anom4 = mean(ANOM...4),
+                   avg_anom6 = mean(ANOM...6),
+                   avg_anom8 = mean(ANOM...8),
+                   avg_anom10 = mean(ANOM...10))
+
+data_sd <- data_raw %>% group_by(MON) %>%
+         summarize(sd_anom4 = sd(ANOM...4),
+                   sd_anom6 = sd(ANOM...6),
+                   sd_anom8 = sd(ANOM...8),
+                   sd_anom10 = sd(ANOM...10))
+```
+
+
+## Simple linear regression
+
+```{r}
+model <- summary(lm(YR ~ ANOM...4, data = data_raw))
+model
+```
+
+```{r}
+model <- summary(lm(MON ~ avg_anom4, data = data_mean))
+model
+```
+
