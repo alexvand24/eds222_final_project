@@ -21,10 +21,9 @@ library(zoo)
 library(feasts)
 ```
 
+### Question
 
-This project seeks to answer the following question:
-
-## **Does ENSO have a significant, predictable cycle?**
+This project seeks to answer the following question: **Does ENSO have a significant, predictable cycle?**
 
 ### Background
 
@@ -44,14 +43,14 @@ ENSO has been well documented for centuries and varying research suggests that t
 
 ### Motivation
 
-The climate phenomenon known as ENSO can affect significant global processes. For example, major weather events, such as wildfire and hurricanes, are affected by the ENSO cycle$^{[6]}$. Furthermore, by influencing regional weather patterns, ENSO affects worldwide crop yields and agricultural outputs, leading to major implications on the global food system, such as under-nutrition in the global tropics$^{[7]}$. Additionally, variations in sea surface temperatures associated with ENSO have implications for phytoplankton productivity and for fish, resulting in major economic impacts on fishing nations, such as Ecuador and Peru$^{[8]}$.
+The climate phenomenon known as ENSO has a powerful influence on global processes. For example, major weather events, such as wildfire and hurricanes, are affected by the ENSO cycle$^{[6]}$ due to large-scale changes in temperature and pressure. Furthermore, by influencing regional weather patterns, ENSO affects worldwide crop yields and agricultural outputs, leading to major implications for the global food system, such as under-nutrition in the global tropics$^{[7]}$. Additionally, variations in sea surface temperatures associated with ENSO have implications for phytoplankton productivity and for fish, resulting in major economic impacts on fishing nations, such as Ecuador and Peru$^{[8]}$.
 
 The ability to scientifically and accurately predict the phases of ENSO allows for proactive global efforts in response to weather events, economic shifts, and even future human health hazards. The results of this study aim to inform policy and global preparedness regarding agriculture, the economy, human health, and climate change.
 
 
 ### Data
 
-This study analyzed free and open source data from NOAA's National Weather Service Climate Prediction Center. [Monthly atmospheric and sea surface temperature](https://www.cpc.ncep.noaa.gov/data/indices/) (SST) indices across four regions of the Pacific were collected over nearly 40 years. Measurements of [SST anomalies](https://www.cpc.ncep.noaa.gov/data/indices/sstoi.indices) (in degrees Celsius) are used to examine El Niño Southern Oscillation from January 1982 to October 2021 from four different regions across the equatorial Pacific. As shown in _Figure 4_, the four regions span from east to west, starting with Niño 1+2 at the western coast of Central America.
+This study analyzed free and open source data from NOAA's National Weather Service Climate Prediction Center. [Monthly atmospheric and sea surface temperature](https://www.cpc.ncep.noaa.gov/data/indices/) (SST) indices were collected over nearly 40 years. Measurements of [SST anomalies](https://www.cpc.ncep.noaa.gov/data/indices/sstoi.indices) (in degrees Celsius) are used to examine El Niño Southern Oscillation from January 1982 to October 2021 from four different regions across the equatorial Pacific. As shown in _Figure 4_, the four regions span from east to west, starting with Niño 1+2 at the western coast of South America.
 
 
 ![_Figure 4_: The four regions of interest across the equatorial Pacific where SST anomalies are measured.](images\NINO_Regions.jpg)
@@ -66,16 +65,16 @@ data_enso <- janitor::clean_names(data_raw_enso)
 
 ### Analysis and Results
 
-#### Lag Analysis
+#### **Lag Analysis**
 
-Statistical lag analysis is implemented using the autocorrelation function `acf`, where the maximum lag duration (in months) is set for the entire time series of the available data. Each of the graphs below represent the autocorrelation of SST anomalies across the four regions of the Pacific impacted by ENSO.
+Statistical lag analysis is implemented using the autocorrelation function `acf`, where the maximum lag duration (in months) is set for the entire time series of the available data. The graphs below represent the autocorrelation of SST anomalies across each of the four regions of the Pacific impacted by ENSO.
 
 ```{r}
 acf1_2 <- acf(x = data_enso$anom1_2, lag.max = 478,
             main = "Niño 1+2")
 ```
 
-The graph above displays autocorrelation of SST anomalies for region Niño 1+2, which is the most eastern of the four regions, closest to the coast of Central America. Values outside of the blue dotted lines indicate statistically significant autocorrelation among sea surface temperature within the region. We can see that between 0 and 200 lag months (<17 years) there are several significant values. Next, we examine the data for the other regions to see how the autocorrelation compares to Niño 1+2.
+The graph above displays autocorrelation of SST anomalies for region Niño 1+2, which is the most eastern of the four regions, closest to the coast of South America. Values outside of the blue dotted lines indicate statistically significant autocorrelation among sea surface temperature within the region. We can see that between 0 and 200 lag months (<17 years) there are several significant values. Next, we examine the data for the other regions to see how the autocorrelation compares to Niño 1+2.
 
 
 ```{r}
@@ -102,16 +101,17 @@ acf3_4 <- acf(x = data_enso$anom3_4, lag.max = 300,
             main = "Niño 3.4")
 ```
 
-Here we see a repeated pattern of a statistically significant lag effects around the following times: $t-25$ (~2 years), $t-100$ (~8 years), $t-125$ (~10 years), and $t-175$ (~15 years).
+Here we see statistically significant lag effects around the following times: $t-25$ (~2 years), $t-100$ (~8 years), $t-125$ (~10 years), and $t-175$ (~15 years).
 
 This preliminary analysis suggests a cyclical pattern where the sea surface temperature anomaly from about 2, 8, 10, and 15 years ago affects the current sea surface temperature anomaly. This outcome is mostly inline with the currently published literature$^{[4]}$, however it's possible there is an even more defined seasonal pattern. 
 
 
-#### Classical Decomposition
+#### **Classical Decomposition**
 
 Because there seems to be a statistically significant repeated pattern of the ENSO cycle, the next step is to determine whether there is clear seasonality and a significant trend in the long-term data. This analysis is carried out through a classical additive decomposition of the NOAA SST data.
 
 ```{r}
+# convert to class date in order to create tsibble
 data_enso <- data_enso %>% 
   mutate(month = case_when(
     mon <= 9 ~ paste0(0, mon),
@@ -136,7 +136,7 @@ As shown in the graph above, the magnitude indicators on the vertical axes indic
 
 ### Future Research
 
-Future research aims to expand upon this preliminary analysis of ENSO autocorrelation and seasonality to accurately predict and prepare for major global impacts. To further explore long-term seasonality, the `acf` function used in the lag analysis may be manipulated to search for seasonality on a greater time scale, such as each decade. While this particular study focuses on SST anomalies, subsequent studies may apply this analysis to atmospheric pressure (the southern Oscillation) in order to determine if there is a more predictable pattern for other ENSO indices. Additionally, regressing this data with crop yield data could lead to discoveries regarding which crops are El Niño vs. La Niña tolerant, informing major agricultural and food distribution decisions. This study hopes to proactively inform policy regarding the implications of the ENSO phenomenon.
+Future research aims to expand upon this preliminary analysis of ENSO autocorrelation and seasonality to accurately predict and prepare for major global impacts. To further explore long-term seasonality, the `acf` function used in the lag analysis may be manipulated to search for seasonality on a greater time scale, such as each decade. While this particular study focuses on SST anomalies, subsequent studies may apply this analysis to atmospheric pressure (the Southern Oscillation) in order to determine if there is a more predictable pattern for other ENSO indices. Additionally, regressing this data with crop yield data could lead to discoveries regarding which crops are El Niño vs. La Niña tolerant, informing major agricultural and food distribution decisions. This study hopes to proactively inform policy and global responses regarding the implications of the ENSO phenomenon.
 
 
 ### References
