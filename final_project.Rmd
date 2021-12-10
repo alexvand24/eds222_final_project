@@ -1,6 +1,6 @@
 ---
-title: "Final Project"
-subtitle: "EDS 222"
+title: "Final Project: EDS 222"
+subtitle: "Statistics for Environmental Data Science"
 author: "Alex Vand"
 date: "`r Sys.Date()`"
 output:
@@ -19,22 +19,43 @@ library(tidyverse)
 library(tsibble)
 library(zoo)
 library(feasts)
-library(janitor)
-library(dplyr)
 ```
 
-## Question
 
-## Background & Motivation
+This project seeks to answer the following question:
 
-## Data
+## **Does ENSO have a significant, predictable cycle?**
+
+### Background
+
+El Niño Southern Oscillation (ENSO) is a repeated climate pattern involving the warming and cooling of water temperature in the central and eastern tropical Pacific Ocean, coupled with changes in atmospheric pressure$^{[1]}$. As shown in _Figure 1_, "El Niño" and "La Niña" represent the extreme phases of the ENSO cycle, where El Niño is the warming extreme and La Niña is the cooling extreme.
+
+![_Figure 1_: Extreme phases of ENSO.](images\iconic_ENSO.jpg)
 
 
-- https://www.cpc.ncep.noaa.gov/data/indices/
+The effects of ENSO vary depending on the particular phase: El Niño, La Niña, or a neutral phase$^{[3]}$. During an El Niño warming event, Canada and the norther U.S. become drier and warmer, while the Gulf Coast and Southeast become wetter and more susceptible to flooding (see _Figure 2_). At the same time, southern Africa becomes dry and warm, shown in _Figure 3_. On the other end of the spectrum, during a La Niña cooling event, the Pacific Northwest and Canada experience heavy rains and flooding, while the southern U.S. experiences drought. During La Niña Southern Africa becomes wet and cool. These effects can be visualized in the graphics below.
 
-NOAA's National Weather Service Climate Prediction Center monthly atmospheric and sea surface temperature indices from January 1982 to October 2021. Measurements of SST anomalies across four regions of the pacific are used to examine El Niño Southern Oscillation for 40? year old data.
+![_Figure 2_: ENSO climate effect on North America.](images\americas.jpg)
 
-- https://www.cpc.ncep.noaa.gov/data/indices/sstoi.indices
+
+![_Figure 3_: ENSO climate effect on African continent.](images\africa.jpg)
+
+ENSO has been well documented for centuries and varying research suggests that there is a repeated pattern of SST and atmospheric pressure anomalies that cycle in 2-10 year intervals$^{[4]}$. While there is variability in the literature regarding occurrence of ENSO, this study hopes to use NOAA data to shed some light on the statistical significance of the ENSO cycle.
+
+### Motivation
+
+The climate phenomenon known as ENSO can affect significant global processes. For example, major weather events, such as wildfire and hurricanes, are affected by the ENSO cycle$^{[6]}$. Furthermore, by influencing regional weather patterns, ENSO affects worldwide crop yields and agricultural outputs, leading to major implications on the global food system, such as under-nutrition in the global tropics$^{[7]}$. Additionally, variations in sea surface temperatures associated with ENSO have implications for phytoplankton productivity and for fish, resulting in major economic impacts on fishing nations, such as Ecuador and Peru$^{[8]}$.
+
+The ability to scientifically and accurately predict the phases of ENSO allows for proactive global efforts in response to weather events, economic shifts, and even future human health hazards. The results of this study aim to inform policy and global preparedness regarding agriculture, the economy, human health, and climate change.
+
+
+### Data
+
+This study analyzed free and open source data from NOAA's National Weather Service Climate Prediction Center. [Monthly atmospheric and sea surface temperature](https://www.cpc.ncep.noaa.gov/data/indices/) (SST) indices across four regions of the Pacific were collected over nearly 40 years. Measurements of [SST anomalies](https://www.cpc.ncep.noaa.gov/data/indices/sstoi.indices) (in degrees Celsius) are used to examine El Niño Southern Oscillation from January 1982 to October 2021 from four different regions across the equatorial Pacific. As shown in _Figure 4_, the four regions span from east to west, starting with Niño 1+2 at the western coast of Central America.
+
+
+![_Figure 4_: The four regions of interest across the equatorial Pacific where SST anomalies are measured.](images\NINO_Regions.jpg)
+
 
 ```{r}
 # read in the raw data (.csv from NOAA)
@@ -42,117 +63,103 @@ data_raw_enso <- read_csv(here::here("enso_data_raw_1982.csv"))
 
 data_enso <- janitor::clean_names(data_raw_enso)
 ```
-## Analysis and Results
 
-### Lag Analysis
+### Analysis and Results
 
-Statistical lag analysis is implemented through the autocorrelation function `acf`, where the argument `lax.max = ` is indicated/specified in each of the following scenarios:
-- 478
+#### Lag Analysis
 
-$t-125$
-
-$t-175$
-
-$t-390$
+Statistical lag analysis is implemented using the autocorrelation function `acf`, where the maximum lag duration (in months) is set for the entire time series of the available data. Each of the graphs below represent the autocorrelation of SST anomalies across the four regions of the Pacific impacted by ENSO.
 
 ```{r}
-acf4 <- acf(x = data_enso$anom_4, lag.max = 478,
-            main = "Autocorrelation function")
+acf1_2 <- acf(x = data_enso$anom1_2, lag.max = 478,
+            main = "Niño 1+2")
 ```
 
+The graph above displays autocorrelation of SST anomalies for region Niño 1+2, which is the most eastern of the four regions, closest to the coast of Central America. Values outside of the blue dotted lines indicate statistically significant autocorrelation among sea surface temperature within the region. We can see that between 0 and 200 lag months (<17 years) there are several significant values. Next, we examine the data for the other regions to see how the autocorrelation compares to Niño 1+2.
 
 
 ```{r}
-acf6 <- acf(x = data_enso$anom_6, lag.max = 478)
+acf3 <- acf(x = data_enso$anom3, lag.max = 478,
+            main = "Niño 3")
 ```
 
 
 ```{r}
-acf6 <- acf(x = data_enso$anom_6, lag.max = 288)
+acf3_4 <- acf(x = data_enso$anom3_4, lag.max = 478,
+            main = "Niño 3.4")
 ```
 
 
 ```{r}
-acf8 <- acf(x = data_enso$anom_8, lag.max = 478)
+acf4 <- acf(x = data_enso$anom4, lag.max = 478,
+            main = "Niño 4")
 ```
 
-
+As expected, after plotting the `acf` function for Niño 3, 3.4, and 4, distinct similar patterns are revealed regarding where there is statistically significant SST anomaly lag. Because most of the interesting values across all regions seem to fall within 300 months (25 years), we take a closer look at this time period across the most studied region: Niño 3.4.
 
 ```{r}
-acf10 <- acf(x = data_enso$anom_10, lag.max = 478)
+acf3_4 <- acf(x = data_enso$anom3_4, lag.max = 300,
+            main = "Niño 3.4")
 ```
 
+Here we see a repeated pattern of a statistically significant lag effects around the following times: $t-25$ (~2 years), $t-100$ (~8 years), $t-125$ (~10 years), and $t-175$ (~15 years).
+
+This preliminary analysis suggests a cyclical pattern where the sea surface temperature anomaly from about 2, 8, 10, and 15 years ago affects the current sea surface temperature anomaly. This outcome is mostly inline with the currently published literature$^{[4]}$, however it's possible there is an even more defined seasonal pattern. 
 
 
-```{r}
-acf10 <- acf(x = data_enso$anom_10, lag.max = 200)
-```
+#### Classical Decomposition
 
-
-
-```{r}
-max(acf10$lag[acf10=0.2])
-
-sort(acf10$lag[acf10=-0.3])
-```
-
-
-### Classical Decomposition
-
-```{r}
-data_enso <- data_raw_enso %>% 
-  mutate(month = case_when(
-    MON <= 9 ~ paste0(0, MON),
-    MON > 9 ~ paste0(MON))) %>%
-  unite(col = date, YR, month, sep = "-") %>% 
-  mutate(date = yearmonth(as.yearmon(date, format = '%Y-%m'))) %>%
-  na.omit() %>%
-  mutate(ANOM10 = ANOM...10) %>% 
-  select(date, ANOM10) %>% 
-  as_tsibble(index = date)
-```
-
-```{r}
-data_enso %>%
-  model(classical_decomposition(ANOM10, type = "additive")) %>%
-  components() %>%
-  autoplot() +
-  labs(title = "Classical additive decomposition of ENSO SST anomalies")
-```
-
-
-```{r}
-# repeated code chunk - DELETE LATER
-data_raw_enso <- read_csv(here::here("enso_data_raw_1982.csv"))
-
-data_enso <- janitor::clean_names(data_raw_enso)
-```
+Because there seems to be a statistically significant repeated pattern of the ENSO cycle, the next step is to determine whether there is clear seasonality and a significant trend in the long-term data. This analysis is carried out through a classical additive decomposition of the NOAA SST data.
 
 ```{r}
 data_enso <- data_enso %>% 
   mutate(month = case_when(
     mon <= 9 ~ paste0(0, mon),
     mon > 9 ~ paste0(mon))) %>%
-  unite(col = date, yr, mon, sep = "-") %>% 
+  unite(col = date, yr, month, sep = "-") %>% 
   mutate(date = yearmonth(as.yearmon(date, format = '%Y-%m'))) %>%
   na.omit() %>%
-  select(date, anom_6) %>% 
+  select(date, anom3_4) %>% 
   as_tsibble(index = date)
 ```
 
+
 ```{r}
 data_enso %>%
-  model(classical_decomposition(anom_6, type = "additive")) %>%
+  model(classical_decomposition(anom3_4, type = "additive")) %>%
   components() %>%
   autoplot() +
   labs(title = "Classical additive decomposition of ENSO SST anomalies")
 ```
 
-https://tsibble.tidyverts.org/reference/as-tsibble.html
+As shown in the graph above, the magnitude indicators on the vertical axes indicate the significance of each effect relative to the other components. A large bar indicates a low influence compared to a component with a small bar. According to this decomposition, there appears to be a very quick seasonal pattern, however this seasonality does not have a large influence on ENSO. Alternatively, the trend component does have a major influence although this pattern initially seems less defined. However, looking more closely at the trend component, a repeated pattern every decade or so can be seen across time (shown between 1988 and 2008, for example). This implies that there may be some other "seasonality" that the function is not currently identifying and further research is required.
+
+### Future Research
+
+Future research aims to expand upon this preliminary analysis of ENSO autocorrelation and seasonality to accurately predict and prepare for major global impacts. To further explore long-term seasonality, the `acf` function used in the lag analysis may be manipulated to search for seasonality on a greater time scale, such as each decade. While this particular study focuses on SST anomalies, subsequent studies may apply this analysis to atmospheric pressure (the southern Oscillation) in order to determine if there is a more predictable pattern for other ENSO indices. Additionally, regressing this data with crop yield data could lead to discoveries regarding which crops are El Niño vs. La Niña tolerant, informing major agricultural and food distribution decisions. This study hopes to proactively inform policy regarding the implications of the ENSO phenomenon.
 
 
-## Future Research
-Future research aims to hopes to 
+### References
+
+1.What is the El Niño–Southern Oscillation (ENSO) in a nutshell? | NOAA Climate.gov. https://www.climate.gov/news-features/blogs/enso/what-el-ni%C3%B1o%E2%80%93southern-oscillation-enso-nutshell.
+
+2.US Department of Commerce, N. What is ENSO? https://www.weather.gov/mhx/ensowhat.
+
+3.US Department of Commerce, N. O. and A. A. What are El Nino and La Nina? https://oceanservice.noaa.gov/facts/ninonina.html.
+
+4.Philander, S. G. H. El Niño Southern Oscillation phenomena. Nature 302, 295–301 (1983).
+
+5.Allan, R., Lindesay, J. & Parker, D. El Nino Southern Oscillation and climatic variability. Oceanographic Literature Review 6, 555 (1997).
+
+6.Fasullo, J. T., Otto-Bliesner, B. L. & Stevenson, S. ENSO’s Changing Influence on Temperature, Precipitation, and Wildfire in a Warming Climate. Geophysical Research Letters 45, 9216–9225 (2018).
+
+7.Anttila-Hughes, J. K., Jina, A. S. & McCord, G. C. ENSO impacts child undernutrition in the global tropics. Nat Commun 12, 5785 (2021).
+
+8.Wang, C. & Fiedler, P. C. ENSO variability and the eastern tropical Pacific: A review. Progress in Oceanography 69, 239–266 (2006).
+
+
+
+
 
 
 
